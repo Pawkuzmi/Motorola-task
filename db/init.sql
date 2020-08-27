@@ -7,3 +7,11 @@ CREATE TABLE device (
   location VARCHAR(255),
   PRIMARY KEY (id)
 );
+
+CREATE TABLE allowed_location (
+  id int AUTO_INCREMENT,
+  location VARCHAR(255) ,
+  device_id int,
+  PRIMARY KEY (id),
+  FOREIGN KEY (device_id) REFERENCES device(id)
+);

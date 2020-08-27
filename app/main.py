@@ -1,3 +1,5 @@
+import http
+
 import mysql.connector
 from flask import Flask, request, abort
 
@@ -7,17 +9,6 @@ from Device import Device
 app = Flask(__name__)
 POST = 'POST'
 GET = 'GET'
-
-
-def favorite_colors():
-	connection = get_connection()
-	cursor = connection.cursor()
-	cursor.execute('SELECT * FROM favorite_colors')
-	results = [{name: color} for (name, color) in cursor]
-	cursor.close()
-	connection.close()
-
-	return results
 
 
 @app.route('/')
@@ -32,51 +23,41 @@ def siema():
 
 @app.route('/radios/<id>/', methods=[GET, POST])
 def radios(id):
-	id_int = 0
 	try:
-		id_int = int(id)
+		int(id)
 	except ValueError:
-		abort(400, description="Incorrect id format. Must be an int.")
+		abort(http.HTTPStatus.BAD_REQUEST, description="Incorrect id format. Must be an int.")
 
 	if request.method == POST:
-		alias = request.form['alias']
-		location = request.form['location']
-		device = Device(id, alias, location)
-		query = DB_Helper.prepare_insert_query(device)
-
-		connection = get_connection()
-		cursor = connection.cursor()
-		try:
-			cursor.execute(query)
-			connection.commit()
-			connection.close()
-			result = cursor.fetchone()
-		except Exception:
-			abort(400, description="Query unseccessfull")
-
-		return 'alias: ' + alias + '; location: ' + location + '; id: ' + id
+		return post_new_radio(id, request)
 
 	elif request.method == GET:
-		return 'siema in GET ' + id
+		return get_radio(id)
 
 
-def get_connection():
-	# config = {
-	# 	'user': 'root',
-	# 	'password': 'root',
-	# 	'host': 'db',
-	# 	'port': '3306',
-	# 	'database': 'devices'
-	# }
-	config = {
-		'user': 'root',
-		'password': 'root',
-		'host': '127.0.0.1',
-		'port': '33066',
-		'database': 'devices'
-	}
-	return mysql.connector.connect(**config,
-								   auth_plugin='mysql_native_password')
+@app.route('/radios/<id>/location/', methods=[POST])
+def assign_location(id):
+	location = request.form['location']  # TODO validate that the request contains alias
+	devices = DB_Helper.get_radio_by_id(id)
+	# allowed_locations = req.form.getlist('allowed-locations')
+	# device = Device(id, alias, allowed_locations)
+	# DB_Helper.insert_device(device)
+	# return 'Device saved', http.HTTPStatus.CREATED
+
+
+def post_new_radio(id, req):
+	alias = req.form['alias'] # TODO validate that the request contains alias
+	allowed_locations = req.form.getlist('allowed-locations')
+	device = Device(id, alias, None)
+	device.allowed_locations = allowed_locations
+	DB_Helper.insert_device(device)
+	return 'Device saved', http.HTTPStatus.CREATED
+
+def get_radio(id):
+	devices = DB_Helper.get_radio_by_id(id)
+	if len(devices) == 1:
+		return str(devices[0]), http.HTTPStatus.OK
+	return 'Missing device with id: {0}'.format(id),http.HTTPStatus.NOT_FOUND
 
 
 if __name__ == '__main__':
