@@ -36,10 +36,11 @@ def get_radio_by_id(id):
 		devices.append(Device(id, alias, location))
 	connection.close()
 
-	for device in devices:
-		assign_allowed_locations_to_device(device)
-
-	return devices
+	# ID of a device id a primary key, so getting a device from DB will take at most 1 device
+	if len(devices) == 1:
+		assign_allowed_locations_to_device(devices[0])
+		return devices[0]
+	return None
 
 def assign_allowed_locations_to_device(device):
 	query = prepare_get_locations_by_device_query(device)
@@ -52,6 +53,19 @@ def assign_allowed_locations_to_device(device):
 
 	for (id, location, device_id) in cursor:
 		device.allowed_locations.append(location)
+
+	connection.close()
+
+
+def update_device_location(device, location):
+	query = prepare_update_device_location_query(device, location)
+	connection = get_connection()
+	cursor = connection.cursor()
+	try:
+		cursor.execute(query)
+		connection.commit()
+	except mysql.connector.Error as err:
+		abort(http.HTTPStatus.BAD_REQUEST, description=err.msg)
 
 	connection.close()
 
@@ -76,6 +90,10 @@ def prepare_get_device_by_id(id):
 
 def prepare_get_locations_by_device_query(device):
 	query = 'SELECT * FROM allowed_location WHERE device_id = {0}'.format(device.id)
+	return query
+
+def prepare_update_device_location_query(device, location):
+	query = 'UPDATE device SET location = "{0}" WHERE id = {1}'.format(location, device.id)
 	return query
 
 def get_connection():

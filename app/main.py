@@ -13,20 +13,11 @@ GET = 'GET'
 
 @app.route('/')
 def index():
-	return 'App index'
-
-
-@app.route('/siema')
-def siema():
-	return 'siema from my flask app;'
-
+	return 'Hello World!'
 
 @app.route('/radios/<id>/', methods=[GET, POST])
 def radios(id):
-	try:
-		int(id)
-	except ValueError:
-		abort(http.HTTPStatus.BAD_REQUEST, description="Incorrect id format. Must be an int.")
+	validate_id(id)
 
 	if request.method == POST:
 		return post_new_radio(id, request)
@@ -37,12 +28,17 @@ def radios(id):
 
 @app.route('/radios/<id>/location/', methods=[POST])
 def assign_location(id):
+	validate_id(id)
+
 	location = request.form['location']  # TODO validate that the request contains alias
-	devices = DB_Helper.get_radio_by_id(id)
-	# allowed_locations = req.form.getlist('allowed-locations')
-	# device = Device(id, alias, allowed_locations)
-	# DB_Helper.insert_device(device)
-	# return 'Device saved', http.HTTPStatus.CREATED
+	device = DB_Helper.get_radio_by_id(id)
+	if device is not None:
+		if location in device.allowed_locations:
+			DB_Helper.update_device_location(device, location)
+			return 'location ' + location + ' allowed', http.HTTPStatus.OK
+		else:
+			#do nothing, leave current device's location
+			return 'location ' + location + ' NOT allowed.', http.HTTPStatus.FORBIDDEN
 
 
 def post_new_radio(id, req):
@@ -54,10 +50,16 @@ def post_new_radio(id, req):
 	return 'Device saved', http.HTTPStatus.CREATED
 
 def get_radio(id):
-	devices = DB_Helper.get_radio_by_id(id)
-	if len(devices) == 1:
-		return str(devices[0]), http.HTTPStatus.OK
+	device = DB_Helper.get_radio_by_id(id)
+	if device is not None:
+		return str(device), http.HTTPStatus.OK
 	return 'Missing device with id: {0}'.format(id),http.HTTPStatus.NOT_FOUND
+
+def validate_id(id):
+	try:
+		int(id)
+	except ValueError:
+		abort(http.HTTPStatus.BAD_REQUEST, description="Incorrect id format. Must be an int.")
 
 
 if __name__ == '__main__':
