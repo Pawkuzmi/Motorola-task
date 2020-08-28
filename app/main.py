@@ -26,20 +26,30 @@ def radios(id):
 		return get_radio(id)
 
 
-@app.route('/radios/<id>/location/', methods=[POST])
-def assign_location(id):
+@app.route('/radios/<id>/location/', methods=[GET, POST])
+def radio_location(id):
 	validate_id(id)
 
-	location = request.form['location']  # TODO validate that the request contains alias
-	device = DB_Helper.get_radio_by_id(id)
-	if device is not None:
-		if location in device.allowed_locations:
-			DB_Helper.update_device_location(device, location)
-			return 'location ' + location + ' allowed', http.HTTPStatus.OK
-		else:
-			#do nothing, leave current device's location
-			return 'location ' + location + ' NOT allowed.', http.HTTPStatus.FORBIDDEN
+	if request.method == POST:
+		location = request.form['location']  # TODO validate that the request contains alias
+		device = DB_Helper.get_radio_by_id(id)
+		if device is not None:
+			if location in device.allowed_locations:
+				DB_Helper.update_device_location(device, location)
+				return 'location ' + location + ' allowed', http.HTTPStatus.OK
+			else:
+				# do nothing, leave current device's location
+				return 'location ' + location + ' NOT allowed.', http.HTTPStatus.FORBIDDEN
 
+	elif request.method == GET:
+		device = DB_Helper.get_radio_by_id(id)
+		if device is not None:
+			if device.location is not None:
+				return 'json with location: ' + device.location, http.HTTPStatus.OK
+			else:
+				return 'Device does not have any location', http.HTTPStatus.NOT_FOUND
+		else:
+			return 'Device with id {0} not found'.format(id), http.HTTPStatus.NOT_FOUND
 
 def post_new_radio(id, req):
 	alias = req.form['alias'] # TODO validate that the request contains alias
