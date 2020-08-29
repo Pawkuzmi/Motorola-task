@@ -1,3 +1,4 @@
+import configparser
 import http
 
 import mysql.connector
@@ -97,19 +98,15 @@ def prepare_update_device_location_query(device, location):
 	return query
 
 def get_connection():
-	# config = {
-	# 	'user': 'root',
-	# 	'password': 'root',
-	# 	'host': 'db',
-	# 	'port': '3306',
-	# 	'database': 'devices'
-	# }
+	config = configparser.ConfigParser()
+	config.read('config.ini')
+
 	config = {
-		'user': 'root',
-		'password': 'root',
-		'host': '127.0.0.1',
-		'port': '33066',
-		'database': 'devices'
+		'user': config['mysqlDB']['user'],
+		'password': config['mysqlDB']['password'],
+		'host': config['mysqlDB']['host'],
+		'port': config['mysqlDB']['port'],
+		'database': config['mysqlDB']['database']
 	}
 	return mysql.connector.connect(**config,
 								   auth_plugin='mysql_native_password')

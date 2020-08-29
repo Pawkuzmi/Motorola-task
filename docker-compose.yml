@@ -1,4 +1,4 @@
-version: "2"
+version: "1"
 services:
   app:
     build: ./app
@@ -13,5 +13,7 @@ services:
       - "33066:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
+# volume allows to store the saved data after the containers have been stopped.
+# The DB will not be cleaned until we explicitly tell to docker compose to drop the container's volumes.
     volumes:
       - ./db:/docker-entrypoint-initdb.d/:ro
