@@ -39,8 +39,14 @@ def radio_location(id):
 
 
 def post_new_radio(id, req):
-	alias = req.json['alias'] # TODO validate that the request contains alias
-	allowed_locations = req.json['allowed_locations']
+	alias = None
+	allowed_locations = []
+	try:
+		alias = req.json['alias']
+		allowed_locations = req.json['allowed_locations']
+	except KeyError as err:
+		abort(http.HTTPStatus.BAD_REQUEST, description='parameter {0} not provided'.format(err))
+
 	device = Device(id, alias, None)
 	device.allowed_locations = allowed_locations
 	DB_Helper.insert_device(device)
@@ -56,7 +62,12 @@ def get_radio(id):
 def post_new_location(id, req):
 	#add a location to a device only if the location is allowed in the allowed locations list
 	location_key = 'location'
-	location = req.json[location_key]  # TODO validate that the request contains alias
+	location = None
+	try:
+		location = req.json[location_key]
+	except KeyError as err:
+		abort(http.HTTPStatus.BAD_REQUEST, description='parameter {0} not provided'.format(err))
+
 	device = DB_Helper.get_radio_by_id(id)
 	if device is not None:
 		if location in device.allowed_locations:

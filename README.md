@@ -5,7 +5,7 @@ A simple service for device handling in a Motorola radio system.
 To start the server go to the location with `docker-compose.yml` file, open the terminal
  and run `docker-compose up` command. The server will be available at `localhost`.
 
-## Testing the server
+## Testing scenarios
 In order to test the server, go to the `request_body` folder, open the terminal and
 perform the following curl commands.
 
@@ -19,7 +19,7 @@ perform the following curl commands.
 
 - `curl -d @location_CPH3.json -H "Content-Type: application/json" -i -L localhost/radios/101/location` - set location of radio 101 to CPH-3
 
-- `curl -d @location_CPH3.json -H "Content-Type: application/json" -i -L localhost/radios/100/location` - set location of radio 100 to CPH-3
+- `curl -d @location_CPH3.json -H "Content-Type: application/json" -i -L localhost/radios/100/location` - try to set location of radio 100 to CPH-3
 
 - `curl -i -L localhost/radios/101/location` - get location of radio of id 101
 

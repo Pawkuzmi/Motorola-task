@@ -6,6 +6,8 @@ from werkzeug.exceptions import abort
 
 from Device import Device
 
+DEVICE_TABLE = 'device'
+ALLOWED_LOCATION_TABLE = 'allowed_location'
 
 def insert_device(device):
 	insert_device_query = prepare_insert_device_query(device)
@@ -71,7 +73,7 @@ def update_device_location(device, location):
 	connection.close()
 
 def prepare_insert_device_query(device):
-	query = 'INSERT INTO device (id, alias) VALUES ({0}, "{1}")'.format(device.id, device.alias)
+	query = 'INSERT INTO {0} (id, alias) VALUES ({1}, "{2}")'.format(DEVICE_TABLE ,device.id, device.alias)
 	return query
 
 def prepare_allowed_locations_query(device):
@@ -82,19 +84,19 @@ def prepare_allowed_locations_query(device):
 	separator = ', '
 	values = separator.join(values_list)
 
-	query = 'INSERT INTO allowed_location (location, device_id) VALUES {0}'.format(values)
+	query = 'INSERT INTO {0} (location, device_id) VALUES {1}'.format(ALLOWED_LOCATION_TABLE ,values)
 	return query
 
 def prepare_get_device_by_id(id):
-	query = 'SELECT * FROM device WHERE id = {0}'.format(id)
+	query = 'SELECT * FROM {0} WHERE id = {1}'.format(DEVICE_TABLE ,id)
 	return query
 
 def prepare_get_locations_by_device_query(device):
-	query = 'SELECT * FROM allowed_location WHERE device_id = {0}'.format(device.id)
+	query = 'SELECT * FROM {0} WHERE device_id = {1}'.format(ALLOWED_LOCATION_TABLE ,device.id)
 	return query
 
 def prepare_update_device_location_query(device, location):
-	query = 'UPDATE device SET location = "{0}" WHERE id = {1}'.format(location, device.id)
+	query = 'UPDATE {0} SET location = "{1}" WHERE id = {2}'.format(DEVICE_TABLE ,location, device.id)
 	return query
 
 def get_connection():
