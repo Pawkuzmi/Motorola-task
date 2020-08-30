@@ -3,7 +3,8 @@ A simple service for device handling in a Motorola radio system.
  
 ## Running a server
 To start the server go to the location with `docker-compose.yml` file, open the terminal
- and run `docker-compose up` command. The server will be available at `localhost`.
+ and run `docker-compose up --build` command. The server will be available at `localhost`. The database will
+ available at port `3306`.
 
 ## Testing scenarios
 In order to test the server, go to the `request_body` folder, open the terminal and
